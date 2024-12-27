@@ -3,12 +3,16 @@ local pickers = require("git-search.pickers")
 
 local Config = {
     eu = false,
+    show_langage = false,
+    show_dates = false,
 }
 
 local M = {}
 
 M.setup = function(opts)
     Config.eu = opts.eu or false
+    Config.show_langage = opts.show_langage or false
+    Config.show_dates = opts.show_dates or false
 
     vim.api.nvim_create_user_command(
         "GitLookupAuthor",
