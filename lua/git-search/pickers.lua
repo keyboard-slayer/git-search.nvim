@@ -9,6 +9,7 @@ end
 
 local t_pickers = require("telescope.pickers")
 local finders = require("telescope.finders")
+local previewers = require("telescope.previewers")
 local conf = require("telescope.config").values
 local action_state = require("telescope.actions.state")
 
@@ -21,14 +22,29 @@ function pickers.authorName(opts)
         prompt_title = "Find commits by author",
         finder = finders.new_table({ results = opts.authors }),
         sorter = conf.generic_sorter(opts),
+        previewer = previewers.new_buffer_previewer({
+            title = "Commits Details",
+            define_preview = function(self, entry)
+                local flags = {
+                    "log",
+                    '--pretty="%h %s"',
+                    '--author="' .. entry.display .. '"',
+                }
+                local output = git({
+                    cwd = opts.cwd,
+                    flags = flags,
+                })
+
+                vim.api.nvim_buf_set_lines(self.state.bufnr, 0, 0, true, output)
+            end,
+        }),
         attach_mappings = function(_, map)
             local function on_select()
                 local selection = action_state.get_selected_entry()
-
                 local flags = {
                     "log",
-                    '--author="' .. selection[1] .. '"',
                     '--pretty="%cd %h %s"',
+                    '--author="' .. selection[1] .. '"',
                 }
 
                 if opts.config.eu then

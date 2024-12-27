@@ -9,6 +9,12 @@ local M = {}
 
 M.setup = function(opts)
     Config.eu = opts.eu or false
+
+    vim.api.nvim_create_user_command(
+        "GitLookupAuthor",
+        M.lookupByAuthorName,
+        {}
+    )
 end
 
 M.lookupByAuthorName = function(opts)
@@ -30,7 +36,5 @@ M.lookupByAuthorName = function(opts)
         .authorName({ authors = authors, cwd = opts.cwd, config = Config })
         :find()
 end
-
-vim.api.nvim_create_user_command("GitLookupAuthor", M.lookupByAuthorName, {})
 
 return M
