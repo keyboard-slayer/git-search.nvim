@@ -50,9 +50,7 @@ function utils.computeDisplays(dict, langs)
                     goto continue
                 end
 
-                -- NOTE: Could be useful
                 local name = vim.filetype.match({ filename = "test" .. ext })
-                -- local name = ext
 
                 if name == nil then
                     goto continue

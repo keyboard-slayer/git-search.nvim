@@ -73,6 +73,23 @@ function pickers.authorName(opts)
                     vim.api.nvim_win_close(win.win, true)
                 end, { buffer = win.buf })
 
+                vim.keymap.set("n", "<CR>", function()
+                    local line = vim.api.nvim_get_current_line()
+                    local s, e = vim.regex("\\x\\{7,64}"):match_str(line)
+
+                    if s == nil then
+                        error("No commit ?")
+                    end
+
+                    local commit = line:sub(s + 1, e)
+
+                    ui.displayCommit({
+                        cwd = opts.cwd,
+                        id = commit,
+                        author = selection[1],
+                    })
+                end, { buffer = win.buf })
+
                 vim.api.nvim_buf_set_lines(
                     win.buf,
                     0,

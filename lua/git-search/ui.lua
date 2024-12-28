@@ -1,5 +1,7 @@
 local ui = {}
 
+local utils = require("git-search.utils")
+
 function ui.createWindow()
     local width = vim.o.columns
     local height = vim.o.lines
@@ -30,7 +32,7 @@ vim.api.nvim_set_hl(0, "Langs", {
 
 function ui.applyHighlight(opts)
     if opts.bufnr == nil then
-        error("No window number was specified")
+        error("No buffer number was specified")
     end
 
     vim.fn.matchadd(
@@ -47,6 +49,33 @@ function ui.applyHighlight(opts)
         -1,
         { buffer = opts.bufnr }
     )
+end
+
+function ui.displayCommit(opts)
+    opts.cwd = vim.fn.expand(opts.cwd or vim.fs.dirname(vim.fn.expand("%")))
+
+    local output = utils.git({
+        cwd = opts.cwd,
+        flags = {
+            "show",
+            opts.id,
+        },
+    })
+
+    local win = ui.createWindow()
+
+    vim.keymap.set("n", "q", function()
+        vim.api.nvim_win_close(win.win, true)
+    end, { buffer = win.buf })
+
+    vim.api.nvim_set_hl(0, "Author", {
+        fg = "#ff0000",
+    })
+
+    vim.fn.matchadd("Author", opts.author, 100, -1, { buffer = win.buf })
+
+    vim.api.nvim_buf_set_lines(win.buf, 0, -1, false, output)
+    vim.api.nvim_set_option_value("filetype", "diff", { buf = win.buf })
 end
 
 return ui
