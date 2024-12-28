@@ -12,3 +12,6 @@ Will open a prompt where you can fuzzy find an author name and it will display e
 <img src="./.repo/shot2.png" />
 <img src="./.repo/shot1.png" />
 </details>
+
+### `:GitLookupRecent`
+Will show the 100 most recent commits

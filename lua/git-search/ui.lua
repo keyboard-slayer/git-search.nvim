@@ -44,7 +44,7 @@ function ui.applyHighlight(opts)
     )
     vim.fn.matchadd(
         "Langs",
-        "\\v\\([^)]*(,\\s*[^)]*)*\\)",
+        "\\v\\( [^)]*(,\\s*[^)]* )*\\)",
         100,
         -1,
         { buffer = opts.bufnr }
@@ -72,10 +72,37 @@ function ui.displayCommit(opts)
         fg = "#ff0000",
     })
 
-    vim.fn.matchadd("Author", opts.author, 100, -1, { buffer = win.buf })
+    if opts.author ~= nil then
+        vim.fn.matchadd("Author", opts.author, 100, -1, { buffer = win.buf })
+    end
 
     vim.api.nvim_buf_set_lines(win.buf, 0, -1, false, output)
     vim.api.nvim_set_option_value("filetype", "diff", { buf = win.buf })
+end
+
+function ui.addBindings(opts)
+    opts.cwd = vim.fn.expand(opts.cwd or vim.fs.dirname(vim.fn.expand("%")))
+
+    vim.keymap.set("n", "q", function()
+        vim.api.nvim_win_close(opts.win, true)
+    end, { buffer = opts.buf })
+
+    vim.keymap.set("n", "<CR>", function()
+        local line = vim.api.nvim_get_current_line()
+        local s, e = vim.regex("\\x\\{7,64}"):match_str(line)
+
+        if s == nil then
+            error("No commit ?")
+        end
+
+        local commit = line:sub(s + 1, e)
+
+        ui.displayCommit({
+            cwd = opts.cwd,
+            id = commit,
+            author = opts.author,
+        })
+    end, { buffer = opts.buf })
 end
 
 return ui

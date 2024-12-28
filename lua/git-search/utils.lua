@@ -35,10 +35,27 @@ function utils.git(opts)
     return ret
 end
 
-function utils.computeDisplays(dict, langs)
+function utils.computeCommits(output, langs)
     langs = langs or false
 
-    for _, d in pairs(dict) do
+    local commits = {}
+    local currentObj = {}
+
+    for _, line in pairs(output) do
+        if string.find(line, string.rep("%x", 7)) ~= nil then
+            if currentObj.name ~= nil then
+                table.insert(commits, currentObj)
+            end
+
+            currentObj = { name = line, files = {}, display = "" }
+        else
+            table.insert(currentObj.files, line)
+        end
+    end
+
+    table.insert(commits, currentObj)
+
+    for _, d in pairs(commits) do
         if langs then
             local r_ext = {}
             local lst_ext = {}
@@ -76,6 +93,8 @@ function utils.computeDisplays(dict, langs)
             d["display"] = d["name"]
         end
     end
+
+    return commits
 end
 
 function utils.getCommitDisplay(dict)
@@ -85,6 +104,19 @@ function utils.getCommitDisplay(dict)
     end
 
     return ret
+end
+
+function utils.addOptionalFlags(flags, config)
+    if config.show_dates then
+        table.insert(flags, '--pretty="%cd %h %s"')
+        if config.eu then
+            table.insert(flags, "--date=format:'%d-%m-%Y'")
+        else
+            table.insert(flags, "--date=format:'%Y-%m-%d'")
+        end
+    else
+        table.insert(flags, '--pretty="%h %s"')
+    end
 end
 
 return utils

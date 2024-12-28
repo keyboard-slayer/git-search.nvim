@@ -30,65 +30,26 @@ function pickers.authorName(opts)
                     "--name-only",
                 }
 
-                if opts.config.show_dates then
-                    table.insert(flags, '--pretty="%cd %h %s"')
-                    if opts.config.eu then
-                        table.insert(flags, "--date=format:'%d-%m-%Y'")
-                    else
-                        table.insert(flags, "--date=format:'%Y-%m-%d'")
-                    end
-                else
-                    table.insert(flags, '--pretty="%h %s"')
-                end
+                utils.addOptionalFlags(flags, opts.config)
 
-                print(table.concat(flags, " "))
                 local output = utils.git({
                     cwd = opts.cwd,
                     flags = flags,
                 })
 
-                local commits = {}
-                local currentObj = {}
-
-                for _, line in pairs(output) do
-                    if string.find(line, string.rep("%x", 7)) ~= nil then
-                        if currentObj.name ~= nil then
-                            table.insert(commits, currentObj)
-                        end
-
-                        currentObj = { name = line, files = {}, display = "" }
-                    else
-                        table.insert(currentObj.files, line)
-                    end
-                end
-
-                table.insert(commits, currentObj)
-
-                utils.computeDisplays(commits, opts.config.show_langage)
+                local commits =
+                    utils.computeCommits(output, opts.config.show_langage)
 
                 local win = ui.createWindow()
+
                 ui.applyHighlight({ bufnr = win.buf })
 
-                vim.keymap.set("n", "q", function()
-                    vim.api.nvim_win_close(win.win, true)
-                end, { buffer = win.buf })
-
-                vim.keymap.set("n", "<CR>", function()
-                    local line = vim.api.nvim_get_current_line()
-                    local s, e = vim.regex("\\x\\{7,64}"):match_str(line)
-
-                    if s == nil then
-                        error("No commit ?")
-                    end
-
-                    local commit = line:sub(s + 1, e)
-
-                    ui.displayCommit({
-                        cwd = opts.cwd,
-                        id = commit,
-                        author = selection[1],
-                    })
-                end, { buffer = win.buf })
+                ui.addBindings({
+                    buf = win.buf,
+                    win = win.win,
+                    author = selection[1],
+                    cwd = opts.cwd,
+                })
 
                 vim.api.nvim_buf_set_lines(
                     win.buf,
