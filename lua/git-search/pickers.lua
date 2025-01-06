@@ -26,6 +26,7 @@ function pickers.authorName(opts)
                 local selection = action_state.get_selected_entry()
                 local flags = {
                     "log",
+                    string.format("-n%d", opts.config.max_commits),
                     '--author="' .. selection[1] .. '"',
                     "--name-only",
                 }

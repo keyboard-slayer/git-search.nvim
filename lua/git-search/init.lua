@@ -6,6 +6,7 @@ local Config = {
     eu = false,
     show_langage = false,
     show_dates = false,
+    max_commits = 100,
 }
 
 local M = {}
@@ -14,6 +15,7 @@ M.setup = function(opts)
     Config.eu = opts.eu or false
     Config.show_langage = opts.show_langage or false
     Config.show_dates = opts.show_dates or false
+    Config.max_commits = opts.max_commits or 100
 
     vim.api.nvim_create_user_command(
         "GitLookupAuthor",
@@ -51,7 +53,12 @@ M.lookupRecents = function(opts)
         error(opts.cwd .. " Is not a valid directory")
     end
 
-    local flags = { "log", "-n100", '--pretty="%cd %h %s"', "--name-only" }
+    local flags = {
+        "log",
+        string.format("-n%d", Config.max_commits),
+        '--pretty="%cd %h %s"',
+        "--name-only",
+    }
 
     utils.addOptionalFlags(flags, Config)
 
